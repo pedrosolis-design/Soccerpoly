@@ -1,0 +1,168 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Club identity and cumulative Triplete statistics for an authenticated manager.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the club owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Manager alias displayed in matches.",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "clubName": {
+          "type": "string",
+          "description": "Preferred football club name.",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "paletteId": {
+          "type": "string",
+          "description": "Selected club jersey palette identifier.",
+          "minLength": 1,
+          "maxLength": 20,
+          "pattern": "^[a-z0-9_\\-]+$"
+        },
+        "matchesPlayed": {
+          "type": "integer",
+          "description": "Total completed matches."
+        },
+        "tripletesWon": {
+          "type": "integer",
+          "description": "Total Triplete championships won."
+        },
+        "bestPoints": {
+          "type": "integer",
+          "description": "Highest squad points score achieved in a match."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the latest profile update."
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "clubName",
+        "paletteId",
+        "matchesPlayed",
+        "tripletesWon",
+        "bestPoints",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChampionRecord": {
+      "title": "ChampionRecord",
+      "description": "Immutable Hall of Fame record of a completed Triplete championship.",
+      "type": "object",
+      "properties": {
+        "recordedByUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the authenticated player who recorded the victory.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "winnerName": {
+          "type": "string",
+          "description": "Winner manager name.",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "clubName": {
+          "type": "string",
+          "description": "Champion club name.",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "color": {
+          "type": "string",
+          "description": "Primary club jersey hex color.",
+          "minLength": 7,
+          "maxLength": 7,
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "secondaryColor": {
+          "type": "string",
+          "description": "Secondary club jersey hex color.",
+          "minLength": 7,
+          "maxLength": 7,
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "points": {
+          "type": "integer",
+          "description": "Winning squad points (minimum 60 for Triplete)."
+        },
+        "moneyLeft": {
+          "type": "integer",
+          "description": "Remaining transfer budget in millions."
+        },
+        "squadCount": {
+          "type": "integer",
+          "description": "Number of signed footballers in champion squad."
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["online", "local"],
+          "description": "Match mode where the Triplete was won."
+        },
+        "playersCount": {
+          "type": "integer",
+          "description": "Number of clubs competing in the match."
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Visibility flag for the Hall of Fame leaderboard."
+        },
+        "wonAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the Triplete was won."
+        }
+      },
+      "required": [
+        "recordedByUid",
+        "winnerName",
+        "clubName",
+        "color",
+        "secondaryColor",
+        "points",
+        "moneyLeft",
+        "squadCount",
+        "mode",
+        "playersCount",
+        "isPublic",
+        "wonAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Owner-only manager profile and Triplete statistics."
+    },
+    "/hallOfFame/{recordId}": {
+      "schema": {
+        "$ref": "#/entities/ChampionRecord"
+      },
+      "description": "Publicly readable, immutable Hall of Fame entries for completed Triplete matches."
+    }
+  }
+}

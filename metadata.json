@@ -1,0 +1,8 @@
+{
+  "name": "Monopolio Futbolero 412",
+  "description": "Juego dinámico de mesa futbolero inspirado en Monopolio 412: fichajes, desafíos, presupuesto y carrera por el Triplete.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

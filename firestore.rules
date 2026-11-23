@@ -1,0 +1,177 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'nsoliscordova@gmail.com';
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidHexColor(val) {
+      return val is string && val.size() == 7 && val.matches('^#[0-9a-fA-F]{6}$');
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+          'uid',
+          'displayName',
+          'clubName',
+          'paletteId',
+          'matchesPlayed',
+          'tripletesWon',
+          'bestPoints',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid',
+          'displayName',
+          'clubName',
+          'paletteId',
+          'matchesPlayed',
+          'tripletesWon',
+          'bestPoints',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.uid) &&
+        data.uid == request.auth.uid &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 24 &&
+        data.clubName is string && data.clubName.size() >= 1 && data.clubName.size() <= 24 &&
+        data.paletteId is string && data.paletteId.size() >= 1 && data.paletteId.size() <= 20 &&
+        data.paletteId.matches('^[a-z0-9_\\-]+$') &&
+        data.matchesPlayed is int && data.matchesPlayed >= 0 && data.matchesPlayed <= 100000 &&
+        data.tripletesWon is int && data.tripletesWon >= 0 && data.tripletesWon <= 100000 &&
+        data.tripletesWon <= data.matchesPlayed &&
+        data.bestPoints is int && data.bestPoints >= 0 && data.bestPoints <= 1000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidChampionRecord(data) {
+      return data.keys().hasAll([
+          'recordedByUid',
+          'winnerName',
+          'clubName',
+          'color',
+          'secondaryColor',
+          'points',
+          'moneyLeft',
+          'squadCount',
+          'mode',
+          'playersCount',
+          'isPublic',
+          'wonAt'
+        ]) &&
+        data.keys().hasOnly([
+          'recordedByUid',
+          'winnerName',
+          'clubName',
+          'color',
+          'secondaryColor',
+          'points',
+          'moneyLeft',
+          'squadCount',
+          'mode',
+          'playersCount',
+          'isPublic',
+          'wonAt'
+        ]) &&
+        isValidId(data.recordedByUid) &&
+        data.recordedByUid == request.auth.uid &&
+        data.winnerName is string && data.winnerName.size() >= 1 && data.winnerName.size() <= 20 &&
+        data.clubName is string && data.clubName.size() >= 1 && data.clubName.size() <= 24 &&
+        isValidHexColor(data.color) &&
+        isValidHexColor(data.secondaryColor) &&
+        data.points is int && data.points >= 60 && data.points <= 1000 &&
+        data.moneyLeft is int && data.moneyLeft >= 0 && data.moneyLeft <= 10000 &&
+        data.squadCount is int && data.squadCount >= 0 && data.squadCount <= 30 &&
+        data.mode is string && (data.mode == 'online' || data.mode == 'local') &&
+        data.playersCount is int && data.playersCount >= 2 && data.playersCount <= 5 &&
+        data.isPublic is bool && data.isPublic == true &&
+        data.wonAt is timestamp;
+    }
+
+    function isIdentityUpdateAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly([
+        'displayName',
+        'clubName',
+        'paletteId',
+        'updatedAt'
+      ]);
+    }
+
+    function isStatsUpdateAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly([
+        'matchesPlayed',
+        'tripletesWon',
+        'bestPoints',
+        'updatedAt'
+      ]) &&
+      incoming().matchesPlayed >= existing().matchesPlayed &&
+      incoming().tripletesWon >= existing().tripletesWon &&
+      incoming().bestPoints >= existing().bestPoints;
+    }
+
+    match /test/connection {
+      allow get: if isSignedIn();
+      allow list, write: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(userId) &&
+        isOwner(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) &&
+        isOwner(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (isIdentityUpdateAction() || isStatsUpdateAction());
+      allow delete: if false;
+    }
+
+    match /hallOfFame/{recordId} {
+      allow get: if isValidId(recordId) && resource.data.isPublic == true;
+      allow list: if resource.data.isPublic == true;
+      allow create: if isValidId(recordId) &&
+        isSignedIn() &&
+        isValidChampionRecord(incoming()) &&
+        incoming().wonAt == request.time;
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Barlow Condensed", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: #f2f1ec;
+    color: #111111;
+    font-optical-sizing: auto;
+  }
+}
+
+/* Tactile warm paper backdrop with subtle grain dots */
+.paper-canvas {
+  background-color: #f2f1ec;
+  background-image: radial-gradient(rgba(17, 17, 17, 0.045) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+/* Desaturated sage-mint paper football pitch */
+.pitch-sage {
+  background-color: #d6e6da;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.22) 0px,
+    rgba(255, 255, 255, 0.22) 48px,
+    rgba(17, 17, 17, 0.025) 48px,
+    rgba(17, 17, 17, 0.025) 96px
+  );
+}
+
+/* Translucent warm paper surface for drawers & overlays */
+.paper-glass {
+  background: rgba(248, 247, 243, 0.9);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .paper-glass {
+    background: #f8f7f3;
+    backdrop-filter: none;
+  }
+}
+
+/* Desaturated editorial metallic card finishes */
+.card-oro {
+  background: linear-gradient(155deg, #f7eed0 0%, #ead693 52%, #d8bc69 100%);
+}
+.card-plata {
+  background: linear-gradient(155deg, #f5f6f8 0%, #dfe3e8 52%, #c3cad3 100%);
+}
+.card-bronce {
+  background: linear-gradient(155deg, #f5e5d8 0%, #e1bfa7 52%, #ca9c7e 100%);
+}
+.card-leyenda {
+  background: linear-gradient(155deg, #f6ebd0 0%, #e6cb82 50%, #cca44f 100%);
+}
+
+.ink-card {
+  border: 2px solid #111111;
+  box-shadow: 4px 4px 0 #111111;
+}
+
+.ink-card-sm {
+  border: 2px solid #111111;
+  box-shadow: 2.5px 2.5px 0 #111111;
+}
+
+.display-tight {
+  letter-spacing: -0.015em;
+  line-height: 1.02;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
